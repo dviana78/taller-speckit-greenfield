@@ -1,0 +1,269 @@
+openapi: 3.0.2
+info:
+  title: of-prc-port-investment-summary-v1
+  version: v1
+  description: >-
+    Process API contract for the investment summary, based on the functional
+    specification of the same name. This is a design draft; models and
+    operations remain subject to approval. Aggregation, currency conversion,
+    partial-failure behavior, security, and performance and positions response
+    schemas are not defined by this contract draft.
+  contact:
+    name: Open Finance API owner
+servers:
+  - url: /open-finance/process/v1
+    description: Proposed base path; host and deployment environments are pending approval.
+tags:
+  - name: investment-summary
+    description: Investment summary capability.
+  - name: performance
+    description: Investment performance over a period.
+  - name: positions
+    description: Investment positions included in the summary.
+paths:
+  /customers/{customerId}/investment-summary:
+    get:
+      tags:
+        - investment-summary
+      operationId: getInvestmentSummary
+      summary: Get a customer's investment summary
+      description: >-
+        Returns the candidate InvestmentSummary model. Aggregation, currency
+        conversion, the use of account data, and inclusion criteria require
+        explicit approval. The architectural relationships to the System APIs
+        do not specify implemented calls.
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+        - name: currency
+          in: query
+          required: false
+          description: Requested ISO 4217 currency code; conversion and default currency are pending approval.
+          schema:
+            type: string
+            example: EUR
+      responses:
+        '200':
+          description: Investment summary returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestmentSummary'
+              examples:
+                illustrative:
+                  summary: Illustrative example from the functional specification
+                  value:
+                    customerId: cus-100045
+                    asOf: '2026-10-31T10:30:00Z'
+                    currency: EUR
+                    totalMarketValue: 125430.75
+                    totalCostBasis: 117000.00
+                    unrealizedGainLoss: 8430.75
+                    unrealizedGainLossPercentage: 7.21
+                    portfolios:
+                      - portfolioId: prt-20001
+                        marketValue: 80430.75
+                        currency: EUR
+                      - portfolioId: prt-20002
+                        marketValue: 45000.00
+                        currency: EUR
+        '400':
+          description: Invalid parameters; error representation awaits an approved common component.
+        '401':
+          description: No valid authentication; error representation awaits an approved common component.
+        '403':
+          description: The consumer is not authorized; error representation awaits an approved common component.
+        '404':
+          description: The customer does not exist or is not visible under the approved policy.
+        '429':
+          description: Rate limit exceeded; error representation awaits an approved common component.
+        '500':
+          description: Unexpected error; error representation awaits an approved common component.
+        '503':
+          description: Service unavailable; dependency handling and partial-failure behavior are pending.
+  /customers/{customerId}/investment-summary/performance:
+    get:
+      tags:
+        - performance
+      operationId: getInvestmentSummaryPerformance
+      summary: Get investment summary performance for a period
+      description: >-
+        The operation and parameters are proposed in the functional
+        specification. The performance response model and performance rules
+        are not defined and must be approved before publication.
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+        - name: from
+          in: query
+          required: false
+          description: Period start date in YYYY-MM-DD format; inclusivity and relationship to to are pending.
+          schema:
+            type: string
+            format: date
+            example: '2026-01-01'
+        - name: to
+          in: query
+          required: false
+          description: Period end date in YYYY-MM-DD format; inclusivity and relationship to from are pending.
+          schema:
+            type: string
+            format: date
+            example: '2026-10-31'
+      responses:
+        '200':
+          description: Performance returned; response schema pending approval.
+        '400':
+          description: Invalid parameters; error representation awaits an approved common component.
+        '401':
+          description: No valid authentication; error representation awaits an approved common component.
+        '403':
+          description: The consumer is not authorized; error representation awaits an approved common component.
+        '404':
+          description: The customer or requested data does not exist or is not visible under the approved policy.
+        '429':
+          description: Rate limit exceeded; error representation awaits an approved common component.
+        '500':
+          description: Unexpected error; error representation awaits an approved common component.
+        '503':
+          description: Service unavailable; dependency handling and partial-failure behavior are pending.
+  /customers/{customerId}/investment-summary/positions:
+    get:
+      tags:
+        - positions
+      operationId: getInvestmentSummaryPositions
+      summary: Get positions for a customer's investment summary
+      description: >-
+        The functional specification proposes this operation but does not
+        define the positions collection schema, aggregation rule, or pagination
+        metadata. No response schema is inferred.
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Positions returned; item schema and pagination metadata pending approval.
+        '400':
+          description: Invalid parameters; error representation awaits an approved common component.
+        '401':
+          description: No valid authentication; error representation awaits an approved common component.
+        '403':
+          description: The consumer is not authorized; error representation awaits an approved common component.
+        '404':
+          description: The customer or requested data does not exist or is not visible under the approved policy.
+        '429':
+          description: Rate limit exceeded; error representation awaits an approved common component.
+        '500':
+          description: Unexpected error; error representation awaits an approved common component.
+        '503':
+          description: Service unavailable; dependency handling and partial-failure behavior are pending.
+components:
+  parameters:
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      description: Open Finance customer identifier; pattern and length require agreement.
+      schema:
+        type: string
+        example: cus-100045
+    Page:
+      name: page
+      in: query
+      required: false
+      description: Requested page; numbering base, minimum, and default are pending.
+      schema:
+        type: integer
+        example: 1
+    PageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Maximum number of items; maximum and default are pending.
+      schema:
+        type: integer
+        example: 20
+  schemas:
+    InvestmentSummary:
+      type: object
+      description: >-
+        Candidate canonical summary model. Property requiredness, valuation,
+        cost-basis definition, aggregation, rounding, and missing-value
+        behavior require approval. No properties are marked required because
+        the functional specification does not settle requiredness.
+      properties:
+        customerId:
+          type: string
+          description: Customer to which the summary applies.
+          example: cus-100045
+        asOf:
+          type: string
+          format: date-time
+          description: Reference instant; the example uses UTC.
+          example: '2026-10-31T10:30:00Z'
+        currency:
+          type: string
+          description: Currency of the totals, using an ISO 4217 code; this does not define conversion.
+          example: EUR
+        totalMarketValue:
+          type: number
+          description: Total market value in currency; precision and aggregation are pending.
+          example: 125430.75
+        totalCostBasis:
+          type: number
+          description: Total cost basis in currency; financial definition and missing-value behavior are pending.
+          example: 117000.00
+        unrealizedGainLoss:
+          type: number
+          description: Unrealized gain or loss in currency; formula and aggregation are pending.
+          example: 8430.75
+        unrealizedGainLossPercentage:
+          type: number
+          description: Gain/loss percentage; formula, scale, and rounding are pending.
+          example: 7.21
+        portfolios:
+          type: array
+          description: Portfolios included in the summary; filter, cardinality, and ordering are pending.
+          items:
+            $ref: '#/components/schemas/PortfolioSummary'
+    PortfolioSummary:
+      type: object
+      description: >-
+        Candidate portfolio summary model. Property requiredness is not defined
+        in the functional specification and must be approved.
+      properties:
+        portfolioId:
+          type: string
+          description: Portfolio identifier.
+          example: prt-20001
+        marketValue:
+          type: number
+          description: Market value in currency.
+          example: 80430.75
+        currency:
+          type: string
+          description: Currency of the market value, using an ISO 4217 code.
+          example: EUR
+        name:
+          type: string
+          description: Display name, if included and available.
+          example: Balanced portfolio
+        unrealizedGainLoss:
+          type: number
+          description: Unrealized gain or loss; formula and missing-value behavior are pending.
+          example: 5430.75
+        unrealizedGainLossPercentage:
+          type: number
+          description: Unrealized percentage; formula and scale are pending.
+          example: 7.24
+x-contract-status: draft
+x-open-decisions:
+  - Decide whether and when banking account data is part of the summary.
+  - Approve valuation, cost-basis, performance, and percentage definitions.
+  - Approve aggregation, currency conversion, exchange-rate, cut-off, and rounding policies.
+  - Define missing-data behavior and partial-failure handling for each dependency.
+  - Define performance and positions response schemas, ordering, and pagination.
+  - Agree on parameter and identifier constraints.
+  - Approve security mechanism, scopes, consent, and resource authorization.
+  - Approve standard errors, Problem Details, correlation, timeouts, and limits.
+  - Pin approved golden-record and commons revisions; agree on SemVer, servers, and compatibility.
+  - Decide whether canonical monetary amounts use flat numeric fields or a Money object.
